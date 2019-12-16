@@ -1,0 +1,50 @@
+version: "3"
+services:
+    app:
+        build: ./php5-fpm
+        depends_on:
+            - db
+        ports:
+            - 9000:9000
+        restart: always
+        volumes:
+            - ./app/lpc_pp_2020/public:/var/www
+            - ./log/www/:/var/www/log
+            - ./app/shared/:/var/www/file/web/shared
+            - ./php5-fpm/wkhtmltopdf:/usr/local/bin/wkhtmltopdf
+            - ./setting-dev.php:/var/www/shared/config/setting.php
+    nginx:
+        image: nginx:1.13
+        depends_on:
+            - app
+        ports:
+            - 8081:80
+        restart: always
+        volumes:
+            - ./app/lpc_pp_2020/public:/var/www
+            - ./log/nginx/:/var/log/nginx
+            - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    db:
+        image: mariadb:latest
+        environment:
+            - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+            - MYSQL_DATABASE=${MYSQL_DATABASE}
+            - MYSQL_USER=${MYSQL_USER}
+            - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+        ports:
+            - "33061:3306"
+        restart: always
+        volumes:
+            - ./docker/mariadb:/opt/data
+
+    mailhog:
+        build: ./mailhog
+        ports:
+            - 1025:1025
+            - 8025:8025
+        restart: always
+        
+volumes:
+    db-data:
+        driver: local
+  
